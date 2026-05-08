@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_background"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="100dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Meeting History"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:fontFamily="sans-serif-condensed"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- History items -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@android:color/transparent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/neon_card_cyan"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+                <FrameLayout android:layout_width="44dp" android:layout_height="44dp"
+                    android:background="@drawable/neon_dot_cyan" android:layout_marginEnd="14dp">
+                    <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_video_call" app:tint="#2ACFD9"/>
+                </FrameLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Team Standup" android:textSize="14sp"
+                        android:textStyle="bold" android:textColor="#FFFFFF"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Today • 45 min • 4 participants"
+                        android:textSize="11sp" android:textColor="#60FFFFFF"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="NXM-4829-KL" android:textSize="10sp"
+                        android:textColor="#402ACFD9" android:letterSpacing="0.05"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@android:color/transparent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/neon_card_amber"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+                <FrameLayout android:layout_width="44dp" android:layout_height="44dp"
+                    android:background="@drawable/neon_dot_amber" android:layout_marginEnd="14dp">
+                    <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_video_call" app:tint="#FFC107"/>
+                </FrameLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Design Review" android:textSize="14sp"
+                        android:textStyle="bold" android:textColor="#FFFFFF"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Yesterday • 1h 10min • 7 participants"
+                        android:textSize="11sp" android:textColor="#60FFFFFF"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="NXM-7731-AB" android:textSize="10sp"
+                        android:textColor="#40FFC107" android:letterSpacing="0.05"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="More history will appear here after your meetings"
+            android:textSize="12sp"
+            android:textColor="#30FFFFFF"
+            android:gravity="center"
+            android:layout_marginTop="20dp"/>
+
+    </LinearLayout>
+</ScrollView>

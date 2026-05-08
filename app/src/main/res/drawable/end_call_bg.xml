@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/end_call_bg.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#CCFF3D3D"/>
+    <stroke android:width="1.5dp" android:color="#FFFF5252"/>
+</shape>

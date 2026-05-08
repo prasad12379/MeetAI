@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_background">
+
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="42dp" android:layout_height="42dp"
+            android:src="@drawable/ic_arrow_back" android:padding="9dp"
+            app:tint="#FFFFFF" android:background="@drawable/neon_icon_bg"
+            android:elevation="4dp"/>
+
+        <TextView
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="Join Meeting"
+            android:textSize="20sp" android:textStyle="bold"
+            android:textColor="#FFFFFF" android:gravity="center"
+            android:fontFamily="sans-serif-condensed"/>
+
+        <View android:layout_width="42dp" android:layout_height="42dp"/>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/header"
+        android:scrollbars="none"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="32dp">
+
+            <!-- Code entry card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/neon_card_amber"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="18dp">
+
+                        <FrameLayout
+                            android:layout_width="36dp" android:layout_height="36dp"
+                            android:background="@drawable/neon_dot_amber">
+                            <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_join" app:tint="#FFC107"/>
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="Enter Meeting Code"
+                            android:textSize="16sp" android:textStyle="bold"
+                            android:textColor="#FFFFFF" android:layout_marginStart="12dp"/>
+                    </LinearLayout>
+
+                    <!-- Code input field -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/neon_input_field"
+                        android:layout_marginBottom="12dp">
+
+                        <EditText
+                            android:id="@+id/etMeetingCode"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:hint="e.g. NXM-4829-KL"
+                            android:textColorHint="#40FFC107"
+                            android:textColor="#FFC107"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-condensed"
+                            android:letterSpacing="0.08"
+                            android:gravity="center"
+                            android:inputType="textCapCharacters"
+                            android:background="@null"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"/>
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Ask the host to share the meeting code with you"
+                        android:textSize="11sp"
+                        android:textColor="#50FFFFFF"
+                        android:gravity="center"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Name entry card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/neon_card_cyan"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Your display name"
+                        android:textSize="13sp"
+                        android:textColor="#60FFFFFF"
+                        android:layout_marginBottom="12dp"/>
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/neon_input_field_cyan">
+
+                        <EditText
+                            android:id="@+id/etDisplayName"
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:hint="Enter your name"
+                            android:textColorHint="#402ACFD9"
+                            android:textColor="#2ACFD9"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:background="@null"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
+                            android:inputType="textPersonName"/>
+                    </FrameLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Pre-meeting toggles -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/neon_card_cyan"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+                        <FrameLayout android:layout_width="40dp" android:layout_height="40dp"
+                            android:background="@drawable/neon_dot_cyan" android:layout_marginEnd="14dp">
+                            <ImageView android:layout_width="22dp" android:layout_height="22dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_mic" app:tint="#2ACFD9"/>
+                        </FrameLayout>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="Join with mic on"
+                            android:textSize="14sp" android:textColor="#FFFFFF"/>
+                        <Switch android:id="@+id/switchMic" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:checked="true"
+                            android:thumbTint="#2ACFD9" android:trackTint="#302ACFD9"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <FrameLayout android:layout_width="40dp" android:layout_height="40dp"
+                            android:background="@drawable/neon_dot_amber" android:layout_marginEnd="14dp">
+                            <ImageView android:layout_width="22dp" android:layout_height="22dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_videocam" app:tint="#FFC107"/>
+                        </FrameLayout>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:text="Join with camera on"
+                            android:textSize="14sp" android:textColor="#FFFFFF"/>
+                        <Switch android:id="@+id/switchCamera" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:checked="true"
+                            android:thumbTint="#FFC107" android:trackTint="#30FFC107"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Join button -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="68dp"
+                android:background="@drawable/neon_button_glow_amber"
+                android:elevation="12dp"
+                android:padding="6dp">
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/btnJoin"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:cardCornerRadius="30dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="#1E1A0A"
+                    android:foreground="?android:attr/selectableItemBackground">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:paddingStart="24dp"
+                        android:paddingEnd="24dp">
+
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                            android:src="@drawable/ic_join" app:tint="#FFC107"
+                            android:layout_marginEnd="12dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="JOIN MEETING"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="#FFFFFF"
+                            android:letterSpacing="0.08"
+                            android:fontFamily="sans-serif-condensed"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+            </FrameLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#050D14">
+
+    <!-- ── Participants Grid (replaces remote/local containers) ─────── -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvParticipants"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/controlsWrapper"
+        android:layout_below="@id/topBar"
+        android:background="#0A1628"
+        android:padding="4dp"
+        android:clipToPadding="false"/>
+
+    <!-- ── Top bar overlay ───────────────────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:background="@drawable/top_bar_gradient"
+        android:elevation="10dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvRoomCode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="NXM-0000-XX"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#2ACFD9"
+                android:letterSpacing="0.06"/>
+
+            <TextView
+                android:id="@+id/tvTimer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textSize="11sp"
+                android:textColor="#80FFFFFF"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/transcriptBadgeWrapper"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:background="@drawable/badge_cyan"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:layout_marginEnd="8dp">
+
+            <!-- Blinking red dot -->
+            <View
+                android:id="@+id/recDot"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:background="#A855F7"
+                android:layout_marginEnd="5dp"/>
+
+            <TextView
+                android:id="@+id/tvTranscriptBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TRANSCRIPT"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="#A855F7"
+                android:visibility="gone"/>
+        </LinearLayout>
+
+        <!-- Participant count badge -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:background="@drawable/badge_cyan"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:layout_marginEnd="10dp">
+            <ImageView android:layout_width="14dp" android:layout_height="14dp"
+                android:src="@drawable/ic_people" app:tint="#2ACFD9"
+                android:layout_marginEnd="4dp"/>
+            <TextView
+                android:id="@+id/tvParticipantCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#2ACFD9"/>
+        </LinearLayout>
+
+        <!-- Participants button -->
+        <ImageView
+            android:id="@+id/btnParticipants"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:src="@drawable/ic_people"
+            android:padding="7dp"
+            app:tint="#CCFFFFFF"
+            android:background="@drawable/neon_icon_bg"
+            android:elevation="4dp"/>
+    </LinearLayout>
+
+    <!-- ── Controls bar ───────────────────────────────────────────── -->
+    <FrameLayout
+        android:id="@+id/controlsWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/controls_bar_glow"
+        android:elevation="20dp"
+        android:padding="6dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="@drawable/glass_bottom_nav"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <!-- Mic -->
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                <FrameLayout android:id="@+id/btnMicWrapper"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:background="@drawable/neon_dot_cyan">
+                    <ImageView android:id="@+id/btnMic"
+                        android:layout_width="24dp" android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_mic" app:tint="#2ACFD9"/>
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- Camera -->
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                <FrameLayout android:id="@+id/btnCamWrapper"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:background="@drawable/neon_dot_amber">
+                    <ImageView android:id="@+id/btnCamera"
+                        android:layout_width="24dp" android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_videocam" app:tint="#FFC107"/>
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- End Call -->
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                <FrameLayout android:id="@+id/btnEndCall"
+                    android:layout_width="50dp" android:layout_height="50dp"
+                    android:background="@drawable/end_call_bg">
+                    <ImageView android:layout_width="26dp" android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_call_end" app:tint="#FFFFFF"/>
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- Chat -->
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                <FrameLayout android:id="@+id/btnChatWrapper"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:background="@drawable/neon_dot_cyan">
+                    <ImageView android:id="@+id/btnChat"
+                        android:layout_width="24dp" android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_chat" app:tint="#2ACFD9"/>
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- Share -->
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                <FrameLayout android:id="@+id/btnShareWrapper"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:background="@drawable/neon_dot_cyan">
+                    <ImageView android:id="@+id/btnShare"
+                        android:layout_width="24dp" android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_screen_share" app:tint="#2ACFD9"/>
+                </FrameLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+    </FrameLayout>
+
+</RelativeLayout>

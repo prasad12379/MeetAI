@@ -31,7 +31,8 @@ import java.util.*
 
 class Meetingroomactivity : AppCompatActivity() {
 
-
+    // ── NEW: member emails list (Step 2) ──────────────────────────────
+    private val memberEmails = mutableListOf<String>()
 
     private val APP_ID = "07ee35268cf04c65adb62e48d8ba430a"
     private val TOKEN  = ""
@@ -67,6 +68,10 @@ class Meetingroomactivity : AppCompatActivity() {
     private var participantCount = 1
     private var channelName = ""
     private var displayName = ""
+
+    // ── NEW: userEmail read from Intent (Step 2) ──────────────────────
+    private var userEmail = ""
+
     private val handler = Handler(Looper.getMainLooper())
 
     // ── Audio Recording ───────────────────────────────────────────────
@@ -97,6 +102,7 @@ class Meetingroomactivity : AppCompatActivity() {
 
         override fun onJoinChannelSuccess(channel: String, uid: Int, elapsed: Int) {
             runOnUiThread {
+                // ── EXISTING logic (unchanged) ────────────────────────
                 handler.post(timerRunnable)
                 participants.add(0, ParticipantInfo(
                     uid = uid,
@@ -108,6 +114,9 @@ class Meetingroomactivity : AppCompatActivity() {
                 updateGridLayout()
                 Toast.makeText(this@Meetingroomactivity,
                     "Connected to $channel", Toast.LENGTH_SHORT).show()
+
+                // ── NEW: add admin/user email to memberEmails (Step 2) ─
+                if (userEmail.isNotEmpty()) memberEmails.add(userEmail)
 
                 // Start recording after joining
                 if (transcriptEnabled) startAudioRecording()
@@ -167,6 +176,9 @@ class Meetingroomactivity : AppCompatActivity() {
         micOn             = intent.getBooleanExtra("mic_on", true)
         cameraOn          = intent.getBooleanExtra("cam_on", true)
         transcriptEnabled = intent.getBooleanExtra("transcript_enabled", false)
+
+        // ── NEW: read userEmail from Intent (Step 2) ──────────────────
+        userEmail         = intent.getStringExtra("user_email") ?: ""
 
         bindViews()
         setupRecyclerView()
@@ -286,7 +298,6 @@ class Meetingroomactivity : AppCompatActivity() {
     // ── Audio Recording ───────────────────────────────────────────────
     private fun startAudioRecording() {
         try {
-            // Save mp3 to app's internal cache folder
             val dateStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss",
                 Locale.getDefault()).format(Date())
             val fileName = "meeting_${channelName}_$dateStamp.mp3"
@@ -411,6 +422,8 @@ class Meetingroomactivity : AppCompatActivity() {
                 putExtra("transcript_filename", transcriptFileName)
                 putExtra("room_code",           channelName)
                 putExtra("duration",            formatDuration(seconds))
+                // ── NEW: pass memberEmails to TranscriptActivity (Step 2) ──
+                putStringArrayListExtra("member_emails", ArrayList(memberEmails))
             }
             startActivity(intent)
             finish()

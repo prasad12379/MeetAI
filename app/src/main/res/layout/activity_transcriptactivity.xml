@@ -466,6 +466,45 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+            <!-- ── Send Summary to Members Button ────────────────────────── -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/btnSendToMembers"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                android:foreground="?android:attr/selectableItemBackground">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/neon_button_glow"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_screen_share"
+                        app:tint="#FFFFFF"
+                        android:layout_marginEnd="8dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SEND SUMMARY TO MEMBERS"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:letterSpacing="0.06"
+                        android:fontFamily="sans-serif-condensed"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
             <!-- ── Download Summary PDF Button ───────────────────────────── -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/btnDownloadSummary"

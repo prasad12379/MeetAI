@@ -16,6 +16,7 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
@@ -23,6 +24,7 @@ import java.io.FileWriter
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import android.net.Uri
 
 class Transcriptactivity : AppCompatActivity() {
 
@@ -37,25 +39,30 @@ class Transcriptactivity : AppCompatActivity() {
     private lateinit var btnClose: ImageView
     private lateinit var progressBar: ProgressBar
     private lateinit var tvStatus: TextView
-    private lateinit var btnGetSummary: CardView        // ← NEW
-    private lateinit var btnDownloadSummary: CardView   // ← NEW
-    private lateinit var tvSummaryBody: TextView        // ← NEW
+    private lateinit var btnGetSummary: CardView
+    private lateinit var btnDownloadSummary: CardView
+    private lateinit var btnSendToMembers: CardView
+    private lateinit var tvSummaryBody: TextView
 
-    private var transcriptText = ""
+    private var transcriptText     = ""
     private var transcriptFileName = "transcript.txt"
-    private var audioFilePath = ""
-    private var roomCode = ""
-    private var duration = ""
-    private var summaryPdfPath = ""   // ← NEW
+    private var audioFilePath      = ""
+    private var roomCode           = ""
+    private var duration           = ""
+    private var summaryPdfPath     = ""
+    private var adminEmail         = ""
+    private var memberEmails       = listOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_transcriptactivity)
 
-        audioFilePath      = intent.getStringExtra("audio_file_path")     ?: ""
-        transcriptFileName = intent.getStringExtra("transcript_filename") ?: "transcript.txt"
-        roomCode           = intent.getStringExtra("room_code")           ?: ""
-        duration           = intent.getStringExtra("duration")            ?: ""
+        audioFilePath      = intent.getStringExtra("audio_file_path")        ?: ""
+        transcriptFileName = intent.getStringExtra("transcript_filename")    ?: "transcript.txt"
+        roomCode           = intent.getStringExtra("room_code")              ?: ""
+        duration           = intent.getStringExtra("duration")               ?: ""
+        adminEmail         = intent.getStringExtra("admin_email")            ?: ""
+        memberEmails       = intent.getStringArrayListExtra("member_emails") ?: arrayListOf()
 
         bindViews()
 
@@ -66,11 +73,11 @@ class Transcriptactivity : AppCompatActivity() {
 
         btnDownload.visibility        = View.GONE
         btnShare.visibility           = View.GONE
-        btnGetSummary.visibility      = View.GONE      // ← hidden until transcript ready
-        btnDownloadSummary.visibility = View.GONE      // ← hidden until summary ready
+        btnGetSummary.visibility      = View.GONE
+        btnDownloadSummary.visibility = View.GONE
+        btnSendToMembers.visibility   = View.GONE
 
         btnClose.setOnClickListener { finish() }
-
         btnGetSummary.setOnClickListener { callSummarizeApi() }
 
         if (audioFilePath.isNotEmpty()) {
@@ -81,18 +88,19 @@ class Transcriptactivity : AppCompatActivity() {
     }
 
     private fun bindViews() {
-        tvRoomCode          = findViewById(R.id.tvTranscriptRoom)
-        tvDuration          = findViewById(R.id.tvTranscriptDuration)
-        tvLineCount         = findViewById(R.id.tvTranscriptLineCount)
-        tvTranscriptBody    = findViewById(R.id.tvTranscriptBody)
-        btnDownload         = findViewById(R.id.btnDownload)
-        btnShare            = findViewById(R.id.btnShareTranscript)
-        btnClose            = findViewById(R.id.btnCloseTranscript)
-        progressBar         = findViewById(R.id.progressBar)
-        tvStatus            = findViewById(R.id.tvStatus)
-        btnGetSummary       = findViewById(R.id.btnGetSummary)       // ← NEW
-        btnDownloadSummary  = findViewById(R.id.btnDownloadSummary)  // ← NEW
-        tvSummaryBody       = findViewById(R.id.tvSummaryBody)       // ← NEW
+        tvRoomCode         = findViewById(R.id.tvTranscriptRoom)
+        tvDuration         = findViewById(R.id.tvTranscriptDuration)
+        tvLineCount        = findViewById(R.id.tvTranscriptLineCount)
+        tvTranscriptBody   = findViewById(R.id.tvTranscriptBody)
+        btnDownload        = findViewById(R.id.btnDownload)
+        btnShare           = findViewById(R.id.btnShareTranscript)
+        btnClose           = findViewById(R.id.btnCloseTranscript)
+        progressBar        = findViewById(R.id.progressBar)
+        tvStatus           = findViewById(R.id.tvStatus)
+        btnGetSummary      = findViewById(R.id.btnGetSummary)
+        btnDownloadSummary = findViewById(R.id.btnDownloadSummary)
+        btnSendToMembers   = findViewById(R.id.btnSendToMembers)
+        tvSummaryBody      = findViewById(R.id.tvSummaryBody)
     }
 
     // ── Transcribe API ────────────────────────────────────────────────
@@ -115,8 +123,7 @@ class Transcriptactivity : AppCompatActivity() {
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart(
-                "file",
-                audioFile.name,
+                "file", audioFile.name,
                 audioFile.asRequestBody("audio/mpeg".toMediaTypeOrNull())
             )
             .build()
@@ -133,7 +140,6 @@ class Transcriptactivity : AppCompatActivity() {
                     showError("Network error: ${e.message}")
                 }
             }
-
             override fun onResponse(call: Call, response: Response) {
                 val body = response.body?.string() ?: ""
                 runOnUiThread {
@@ -158,11 +164,11 @@ class Transcriptactivity : AppCompatActivity() {
 
         btnGetSummary.visibility      = View.GONE
         btnDownloadSummary.visibility = View.GONE
+        btnSendToMembers.visibility   = View.GONE
         tvSummaryBody.text            = ""
         showLoading(true)
         tvStatus.text = "Generating summary..."
 
-        // Write transcript to a temp .txt file to send as multipart
         val tempTxtFile = File(cacheDir, "transcript_temp.txt")
         tempTxtFile.writeText(transcriptText)
 
@@ -175,8 +181,7 @@ class Transcriptactivity : AppCompatActivity() {
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart(
-                "file",
-                tempTxtFile.name,
+                "file", tempTxtFile.name,
                 tempTxtFile.asRequestBody("text/plain".toMediaTypeOrNull())
             )
             .build()
@@ -194,15 +199,13 @@ class Transcriptactivity : AppCompatActivity() {
                     showError("Summary failed: ${e.message}")
                 }
             }
-
             override fun onResponse(call: Call, response: Response) {
                 val body = response.body?.string() ?: ""
                 runOnUiThread {
                     showLoading(false)
                     if (response.isSuccessful) {
                         try {
-                            val json    = JSONObject(body)
-                            val summary = json.getString("summary")
+                            val summary = JSONObject(body).getString("summary")
                             displaySummary(summary)
                         } catch (e: Exception) {
                             showError("Failed to parse summary: ${e.message}")
@@ -213,22 +216,95 @@ class Transcriptactivity : AppCompatActivity() {
                         btnGetSummary.visibility = View.VISIBLE
                     }
                 }
-                // Clean up temp file
                 tempTxtFile.delete()
             }
         })
     }
 
+    // ── Send PDF via device email app ─────────────────────────────────
+    private fun sendPdfViaEmail() {
+        if (summaryPdfPath.isEmpty()) {
+            Toast.makeText(this, "No PDF to send", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (memberEmails.isEmpty()) {
+            Toast.makeText(this, "No members to send to", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            val pdfFile = File(summaryPdfPath)
+            if (!pdfFile.exists()) {
+                Toast.makeText(this, "PDF file not found", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val pdfUri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.provider",
+                pdfFile
+            )
+
+            val subject = "MeetAI — Meeting Summary [$roomCode]"
+            val body = """
+Hi,
+
+Please find attached the AI-generated summary for our recent MeetAI meeting.
+
+Meeting Details:
+  • Room Code : $roomCode
+  • Duration  : $duration
+  • Admin     : $adminEmail
+
+The full meeting summary is attached as a PDF.
+
+Best regards,
+$adminEmail
+        """.trimIndent()
+
+            // Use ACTION_SEND (not MULTIPLE) with "*/*" to maximize email app compatibility
+            val emailIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "*/*"
+                putExtra(Intent.EXTRA_EMAIL, memberEmails.toTypedArray())
+                putExtra(Intent.EXTRA_SUBJECT, subject)
+                putExtra(Intent.EXTRA_TEXT, body)
+                putExtra(Intent.EXTRA_STREAM, pdfUri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            val chooser = Intent.createChooser(emailIntent, "Send Summary via Email")
+
+            // Grant URI permission to all apps in the chooser
+            val resInfoList = packageManager.queryIntentActivities(
+                chooser, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
+            )
+            for (resolveInfo in resInfoList) {
+                val packageName = resolveInfo.activityInfo.packageName
+                grantUriPermission(
+                    packageName,
+                    pdfUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
+
+            startActivity(chooser)
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Failed to open email: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
     // ── Display Transcript ────────────────────────────────────────────
     private fun displayTranscript(text: String) {
         tvTranscriptBody.text = text
-        val lineCount = text.lines().count { it.trim().isNotEmpty() }
-        tvLineCount.text = "$lineCount lines"
-        tvStatus.text = "Transcript ready ✓"
+        val lineCount         = text.lines().count { it.trim().isNotEmpty() }
+        tvLineCount.text      = "$lineCount lines"
+        tvStatus.text         = "Transcript ready ✓"
 
         btnDownload.visibility   = View.VISIBLE
         btnShare.visibility      = View.VISIBLE
-        btnGetSummary.visibility = View.VISIBLE   // ← show summary button
+        btnGetSummary.visibility = View.VISIBLE
 
         btnDownload.setOnClickListener { downloadTranscript() }
         btnShare.setOnClickListener    { shareFile() }
@@ -236,160 +312,180 @@ class Transcriptactivity : AppCompatActivity() {
         try { File(audioFilePath).delete() } catch (e: Exception) { e.printStackTrace() }
     }
 
-    // ── Display Summary + Generate PDF ───────────────────────────────
+    // ── Display Summary ───────────────────────────────────────────────
     private fun displaySummary(summaryText: String) {
-        tvSummaryBody.text            = summaryText
-        tvSummaryBody.visibility      = View.VISIBLE
-        tvStatus.text                 = "Summary ready ✓"
-        btnGetSummary.visibility      = View.GONE  // hide after summary received
+        tvSummaryBody.text       = summaryText
+        tvSummaryBody.visibility = View.VISIBLE
+        tvStatus.text            = "Summary ready ✓"
+        btnGetSummary.visibility = View.GONE
 
-        // Generate PDF in background
         try {
             summaryPdfPath = generateSummaryPdf(summaryText)
+
             btnDownloadSummary.visibility = View.VISIBLE
             btnDownloadSummary.setOnClickListener { downloadSummaryPdf() }
+
+            // Show send button only if members exist
+            if (memberEmails.isNotEmpty()) {
+                btnSendToMembers.visibility = View.VISIBLE
+                btnSendToMembers.setOnClickListener {
+                    showSendConfirmDialog()
+                }
+            }
+
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this,
-                "PDF generation failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                "PDF generation failed: ${e.message}",
+                Toast.LENGTH_SHORT).show()
         }
     }
 
-    // ── Generate Summary PDF ──────────────────────────────────────────
+    // ── Confirm dialog before sending ────────────────────────────────
+    private fun showSendConfirmDialog() {
+        val emailList = memberEmails.joinToString("\n• ", prefix = "• ")
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Send Summary PDF")
+            .setMessage(
+                "Your email app will open with the PDF attached " +
+                        "and all ${memberEmails.size} member(s) added as recipients:\n\n$emailList"
+            )
+            .setPositiveButton("Open Email App") { _, _ -> sendPdfViaEmail() }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    // ── Generate PDF ──────────────────────────────────────────────────
     private fun generateSummaryPdf(summaryText: String): String {
         val pdfDocument = PdfDocument()
-
-        val pageWidth  = 595   // A4 width in points
-        val pageHeight = 842   // A4 height in points
-        val margin     = 50f
+        val pageWidth   = 595
+        val pageHeight  = 842
+        val margin      = 50f
         val usableWidth = pageWidth - (margin * 2)
 
         val pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create()
         val page     = pdfDocument.startPage(pageInfo)
         val canvas   = page.canvas
 
-        // ── Background ────────────────────────────────────────────────
         val bgPaint = Paint().apply { color = Color.parseColor("#0D0D1A") }
         canvas.drawRect(0f, 0f, pageWidth.toFloat(), pageHeight.toFloat(), bgPaint)
 
-        // ── Title ─────────────────────────────────────────────────────
         val titlePaint = Paint().apply {
-            color     = Color.parseColor("#2ACFD9")
-            textSize  = 26f
+            color          = Color.parseColor("#2ACFD9")
+            textSize       = 26f
             isFakeBoldText = true
             isAntiAlias    = true
         }
         canvas.drawText("MeetAI — Meeting Summary", margin, 80f, titlePaint)
 
-        // ── Divider line ──────────────────────────────────────────────
         val linePaint = Paint().apply {
             color       = Color.parseColor("#2ACFD9")
             strokeWidth = 1.5f
         }
         canvas.drawLine(margin, 95f, pageWidth - margin, 95f, linePaint)
 
-        // ── Meta info ────────────────────────────────────────────────
         val metaPaint = Paint().apply {
-            color    = Color.parseColor("#888888")
-            textSize = 11f
+            color       = Color.parseColor("#888888")
+            textSize    = 11f
             isAntiAlias = true
         }
-        val dateStr = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
-        canvas.drawText("Room: $roomCode   |   Duration: $duration   |   Generated: $dateStr",
-            margin, 118f, metaPaint)
+        val dateStr = SimpleDateFormat(
+            "yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
+        canvas.drawText(
+            "Room: $roomCode   |   Duration: $duration   |   Generated: $dateStr",
+            margin, 118f, metaPaint
+        )
 
-        // ── Section label ─────────────────────────────────────────────
         val labelPaint = Paint().apply {
-            color    = Color.parseColor("#A855F7")
-            textSize = 13f
+            color          = Color.parseColor("#A855F7")
+            textSize       = 13f
             isFakeBoldText = true
             isAntiAlias    = true
         }
         canvas.drawText("SUMMARY", margin, 150f, labelPaint)
 
-        // ── Summary body text (word-wrapped) ──────────────────────────
         val bodyPaint = Paint().apply {
-            color    = Color.parseColor("#CCFFFFFF")
-            textSize = 13f
+            color       = Color.parseColor("#CCFFFFFF")
+            textSize    = 13f
             isAntiAlias = true
         }
 
-        var yPos = 175f
-        val lineHeight = 20f
-        val words = summaryText.split(" ")
-        var currentLine = ""
+        var yPos          = 175f
+        val lineHeight    = 20f
+        val words         = summaryText.split(" ")
+        var currentLine   = ""
+        var currentPage   = page
+        var currentCanvas = canvas
 
         for (word in words) {
             val testLine = if (currentLine.isEmpty()) word else "$currentLine $word"
             if (bodyPaint.measureText(testLine) <= usableWidth) {
                 currentLine = testLine
             } else {
-                canvas.drawText(currentLine, margin, yPos, bodyPaint)
+                currentCanvas.drawText(currentLine, margin, yPos, bodyPaint)
                 yPos += lineHeight
                 currentLine = word
 
-                // Start a new page if needed
                 if (yPos > pageHeight - margin) {
-                    pdfDocument.finishPage(page)
-                    val newPageInfo = PdfDocument.PageInfo.Builder(
-                        pageWidth, pageHeight, pdfDocument.pages.size + 1).create()
-                    val newPage = pdfDocument.startPage(newPageInfo)
-                    val newCanvas = newPage.canvas
-                    newCanvas.drawRect(0f, 0f,
-                        pageWidth.toFloat(), pageHeight.toFloat(), bgPaint)
+                    pdfDocument.finishPage(currentPage)
+                    val newInfo = PdfDocument.PageInfo.Builder(
+                        pageWidth, pageHeight,
+                        pdfDocument.pages.size + 1
+                    ).create()
+                    currentPage   = pdfDocument.startPage(newInfo)
+                    currentCanvas = currentPage.canvas
+                    currentCanvas.drawRect(
+                        0f, 0f,
+                        pageWidth.toFloat(), pageHeight.toFloat(), bgPaint
+                    )
                     yPos = margin + lineHeight
                 }
             }
         }
-        // Draw last line
         if (currentLine.isNotEmpty()) {
-            canvas.drawText(currentLine, margin, yPos, bodyPaint)
-            yPos += lineHeight * 2
+            currentCanvas.drawText(currentLine, margin, yPos, bodyPaint)
         }
 
-        // ── Footer ────────────────────────────────────────────────────
         val footerPaint = Paint().apply {
-            color    = Color.parseColor("#444444")
-            textSize = 10f
+            color       = Color.parseColor("#444444")
+            textSize    = 10f
             isAntiAlias = true
         }
-        canvas.drawLine(margin, pageHeight - 50f,
-            pageWidth - margin, pageHeight - 50f, footerPaint)
-        canvas.drawText("Generated by MeetAI  •  $dateStr",
-            margin, pageHeight - 30f, footerPaint)
+        currentCanvas.drawLine(
+            margin, pageHeight - 50f,
+            pageWidth - margin, pageHeight - 50f, footerPaint
+        )
+        currentCanvas.drawText(
+            "Generated by MeetAI  •  $dateStr",
+            margin, pageHeight - 30f, footerPaint
+        )
 
-        pdfDocument.finishPage(page)
+        pdfDocument.finishPage(currentPage)
 
-        // ── Save PDF ──────────────────────────────────────────────────
-        val dateStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss",
-            Locale.getDefault()).format(Date())
+        val dateStamp   = SimpleDateFormat(
+            "yyyy-MM-dd_HH-mm-ss", Locale.getDefault()).format(Date())
         val pdfFileName = "Summary_${roomCode}_$dateStamp.pdf"
-        val pdfFile = File(cacheDir, pdfFileName)
-
+        val pdfFile     = File(cacheDir, pdfFileName)
         FileOutputStream(pdfFile).use { pdfDocument.writeTo(it) }
         pdfDocument.close()
 
         return pdfFile.absolutePath
     }
 
-    // ── Download Summary PDF ──────────────────────────────────────────
+    // ── Download PDF ──────────────────────────────────────────────────
     private fun downloadSummaryPdf() {
         if (summaryPdfPath.isEmpty()) return
         try {
-            val sourceFile = File(summaryPdfPath)
+            val sourceFile   = File(summaryPdfPath)
             val downloadsDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOWNLOADS)
             if (!downloadsDir.exists()) downloadsDir.mkdirs()
-
             val destFile = File(downloadsDir, sourceFile.name)
             sourceFile.copyTo(destFile, overwrite = true)
-
             Toast.makeText(this,
                 "PDF saved to Downloads/${sourceFile.name}",
                 Toast.LENGTH_LONG).show()
-
         } catch (e: Exception) {
-            // Fallback — share via FileProvider
             try {
                 val uri = FileProvider.getUriForFile(
                     this, "${packageName}.provider", File(summaryPdfPath))
@@ -405,7 +501,7 @@ class Transcriptactivity : AppCompatActivity() {
         }
     }
 
-    // ── Download Transcript .txt ──────────────────────────────────────
+    // ── Download Transcript ───────────────────────────────────────────
     private fun downloadTranscript(): File? {
         return try {
             val downloadsDir = Environment.getExternalStoragePublicDirectory(
@@ -414,16 +510,17 @@ class Transcriptactivity : AppCompatActivity() {
             val file = File(downloadsDir, transcriptFileName)
             FileWriter(file).use { it.write(transcriptText) }
             Toast.makeText(this,
-                "Saved to Downloads/$transcriptFileName", Toast.LENGTH_LONG).show()
+                "Saved to Downloads/$transcriptFileName",
+                Toast.LENGTH_LONG).show()
             file
         } catch (e: Exception) {
             try {
-                val docsDir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) ?: filesDir
-                if (!docsDir.exists()) docsDir.mkdirs()
+                val docsDir = getExternalFilesDir(
+                    Environment.DIRECTORY_DOCUMENTS) ?: filesDir
                 val file = File(docsDir, transcriptFileName)
                 FileWriter(file).use { it.write(transcriptText) }
                 Toast.makeText(this,
-                    "Saved to app Documents folder", Toast.LENGTH_LONG).show()
+                    "Saved to app Documents", Toast.LENGTH_LONG).show()
                 file
             } catch (ex: Exception) {
                 Toast.makeText(this,
@@ -443,7 +540,8 @@ class Transcriptactivity : AppCompatActivity() {
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, "MeetAI Transcript – $transcriptFileName")
+                putExtra(Intent.EXTRA_SUBJECT,
+                    "MeetAI Transcript – $transcriptFileName")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             startActivity(Intent.createChooser(shareIntent, "Share Transcript"))

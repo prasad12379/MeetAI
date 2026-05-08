@@ -12,11 +12,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import java.io.IOException
 
 class Newmeetingactivity : AppCompatActivity() {
 
     companion object {
         private const val PERMISSION_REQ_ID = 33
+        private const val BASE_URL = "https://newmeetaibackend.onrender.com"
     }
 
     private lateinit var tvRoomCode: TextView
@@ -29,12 +35,18 @@ class Newmeetingactivity : AppCompatActivity() {
     private lateinit var btnBack: ImageView
 
     private var currentCode = ""
+    private var userEmail   = ""
+
+    private val httpClient = OkHttpClient.Builder()
+        .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_newmeetingactivity)
 
-        // ── Bind views (only once) ────────────────────────────────────
+        // ── Bind views ────────────────────────────────────────────────
         tvRoomCode       = findViewById(R.id.tvRoomCode)
         btnCopyCode      = findViewById(R.id.btnCopyCode)
         btnRefreshCode   = findViewById(R.id.btnRefreshCode)
@@ -44,10 +56,13 @@ class Newmeetingactivity : AppCompatActivity() {
         switchTranscript = findViewById(R.id.switchTranscript)
         btnBack          = findViewById(R.id.btnBack)
 
-        // ── Generate initial room code ────────────────────────────────
+        // ── Get saved email from SharedPreferences (set during login) ─
+        val prefs = getSharedPreferences("meetai_prefs", MODE_PRIVATE)
+        userEmail = prefs.getString("user_email", "") ?: ""
+
         generateCode()
 
-        // ── Listeners (only once) ─────────────────────────────────────
+        // ── Listeners ─────────────────────────────────────────────────
         btnBack.setOnClickListener { finish() }
 
         btnCopyCode.setOnClickListener {
@@ -65,8 +80,14 @@ class Newmeetingactivity : AppCompatActivity() {
         }
 
         btnStartMeeting.setOnClickListener {
+            if (userEmail.isEmpty()) {
+                Toast.makeText(this,
+                    "User email not found. Please login again.",
+                    Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             if (checkPermissions()) {
-                launchMeetingRoom()
+                registerAdminAndLaunch()
             } else {
                 ActivityCompat.requestPermissions(
                     this,
@@ -77,6 +98,90 @@ class Newmeetingactivity : AppCompatActivity() {
         }
     }
 
+    // ── Register admin in MongoDB then launch meeting ─────────────────
+    private fun registerAdminAndLaunch() {
+        btnStartMeeting.isEnabled = false
+        Toast.makeText(this, "Creating meeting...", Toast.LENGTH_SHORT).show()
+
+        val body = JSONObject().apply {
+            put("room_code", currentCode)
+            put("email",     userEmail)
+            put("is_admin",  true)
+        }
+
+        val request = Request.Builder()
+            .url("$BASE_URL/meetings")
+            .post(
+                body.toString()
+                    .toRequestBody("application/json".toMediaTypeOrNull())
+            )
+            .build()
+
+        httpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    btnStartMeeting.isEnabled = true
+                    Toast.makeText(
+                        this@Newmeetingactivity,
+                        "Network error: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val responseBody = response.body?.string() ?: ""
+                runOnUiThread {
+                    btnStartMeeting.isEnabled = true
+                    when (response.code) {
+                        200, 201 -> {
+                            // Success — launch meeting room
+                            android.util.Log.d("MEETAI",
+                                "Meeting created: $responseBody")
+                            launchMeetingRoom()
+                        }
+                        409 -> {
+                            // Room already exists — generate new code and retry
+                            Toast.makeText(
+                                this@Newmeetingactivity,
+                                "Room code conflict, generating new code...",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            generateCode()
+                            registerAdminAndLaunch()
+                        }
+                        else -> {
+                            Toast.makeText(
+                                this@Newmeetingactivity,
+                                "Failed to create meeting. Try again.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            android.util.Log.e("MEETAI",
+                                "Create meeting error: $responseBody")
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    // ── Launch meeting room activity ──────────────────────────────────
+    private fun launchMeetingRoom() {
+        val displayName = userEmail.substringBefore("@").ifEmpty { "Host" }
+
+        val intent = Intent(this, Meetingroomactivity::class.java).apply {
+            putExtra("room_code",          currentCode)
+            putExtra("display_name",       displayName)
+            putExtra("user_email",         userEmail)
+            putExtra("mic_on",             switchMic.isChecked)
+            putExtra("cam_on",             switchCamera.isChecked)
+            putExtra("is_host",            true)
+            putExtra("transcript_enabled", switchTranscript.isChecked)
+        }
+        startActivity(intent)
+    }
+
+    // ── Permissions ───────────────────────────────────────────────────
     private fun checkPermissions(): Boolean =
         ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
                 PackageManager.PERMISSION_GRANTED &&
@@ -89,7 +194,7 @@ class Newmeetingactivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQ_ID) {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                launchMeetingRoom()
+                registerAdminAndLaunch()
             } else {
                 Toast.makeText(
                     this,
@@ -98,21 +203,6 @@ class Newmeetingactivity : AppCompatActivity() {
                 ).show()
             }
         }
-    }
-
-    private fun launchMeetingRoom() {
-        // Log to confirm transcript switch state before launching
-        android.util.Log.d("MEETAI", "transcript_enabled = ${switchTranscript.isChecked}")
-
-        val intent = Intent(this, Meetingroomactivity::class.java).apply {
-            putExtra("room_code",          currentCode)
-            putExtra("display_name",       "Host")        // ← add display name
-            putExtra("mic_on",             switchMic.isChecked)
-            putExtra("cam_on",             switchCamera.isChecked)
-            putExtra("is_host",            true)
-            putExtra("transcript_enabled", switchTranscript.isChecked)
-        }
-        startActivity(intent)
     }
 
     private fun generateCode() {

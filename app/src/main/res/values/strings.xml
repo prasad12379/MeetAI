@@ -2,4 +2,15 @@
     <string name="app_name">MeetAI</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_home_fragment">HomeFragment</string>
+    <string name="title_activity_meet_ai_theme">MeetAiTheme</string>
+    <string name="title_activity_newmeetingactivity">Newmeetingactivity</string>
+    <string name="title_activity_homefragment">Homefragment</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_profilefragment">Profilefragment</string>
+    <string name="title_activity_joinmeetingactivity">Joinmeetingactivity</string>
+    <string name="title_activity_splashactivity">Splashactivity</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_sign_up">SignUpActivity</string>
+    <string name="title_activity_meetingroomactivity">Meetingroomactivity</string>
 </resources>

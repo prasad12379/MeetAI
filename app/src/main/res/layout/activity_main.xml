@@ -1,44 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<!--
+    activity_main.xml  —  MeetAI
+    ─────────────────────────────────────────────────────────────────────────
+    Layout structure:
+      • fragmentContainer  — full-screen, fragments draw here edge-to-edge
+      • navOverlay         — sits on top, holds the Compose floating pill nav
+                             (match_parent so the Compose Box can anchor to bottom)
+
+    The old BottomNavigationView and glowWrapper are removed entirely.
+    Navigation chrome is now 100% Compose inside MainActivity.kt.
+-->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/gradient_background">
+    android:fitsSystemWindows="false">
 
-    <androidx.fragment.app.FragmentContainerView
+    <!-- Fragment host — full screen, no bottom padding -->
+    <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/glowWrapper"/>
+        android:layout_height="match_parent" />
 
-    <!-- Neon glow wrapper — same as water tracker -->
+    <!-- Overlay for the floating Compose pill nav -->
     <FrameLayout
-        android:id="@+id/glowWrapper"
-        android:layout_width="wrap_content"
-        android:layout_height="86dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="14dp"
-        android:background="@drawable/neon_glow_layer"
-        android:elevation="20dp"
-        android:paddingLeft="8dp"
-        android:paddingTop="8dp"
-        android:paddingRight="8dp"
-        android:paddingBottom="8dp">
+        android:id="@+id/navOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="no" />
 
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottomNav"
-            android:layout_width="wrap_content"
-            android:layout_height="70dp"
-            android:layout_gravity="center"
-            android:background="@drawable/glass_bottom_nav"
-            android:paddingStart="22dp"
-            android:paddingEnd="22dp"
-            app:itemIconSize="26dp"
-
-            app:itemRippleColor="@android:color/transparent"
-            app:labelVisibilityMode="unlabeled"
-            app:menu="@menu/nexmeet_nav_menu"/>
-    </FrameLayout>
-
-</RelativeLayout>
+</FrameLayout>

@@ -7,16 +7,22 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- Needed for downloading transcript/PDF to Downloads folder -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
 
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
-    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
-    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.front"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -28,7 +34,69 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MeetAI">
 
-        <!-- ✅ FileProvider — required for sharing files with email apps -->
+        <activity
+            android:name=".Meetingroomactivity"
+            android:exported="false"
+            android:keepScreenOn="true"
+            android:label="@string/title_activity_meetingroomactivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.MeetAI" />
+
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="false"
+            android:label="@string/title_activity_sign_up"
+            android:theme="@style/Theme.MeetAI" />
+
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false"
+            android:label="@string/title_activity_login"
+            android:theme="@style/Theme.MeetAI" />
+
+        <!--
+            FIX 1: exported="true" is required on any activity that has a
+            LAUNCHER intent-filter. exported="false" prevents the OS from
+            starting it — this was the sole reason the app would not open.
+        -->
+        <activity
+            android:name=".Splashactivity"
+            android:exported="true"
+            android:label="@string/title_activity_splashactivity"
+            android:noHistory="true"
+            android:theme="@style/Theme.MeetAI">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".Joinmeetingactivity"
+            android:exported="false"
+            android:label="@string/title_activity_joinmeetingactivity"
+            android:theme="@style/Theme.MeetAI" />
+
+        <activity
+            android:name=".Newmeetingactivity"
+            android:exported="false"
+            android:label="@string/title_activity_newmeetingactivity"
+            android:theme="@style/Theme.MeetAI" />
+
+        <!--
+            FIX 2: Profilefragment and Homefragment are Fragment subclasses,
+            not Activity subclasses. Declaring a Fragment as an <activity>
+            causes a ClassCastException crash at runtime. Removed both.
+            Fragments are hosted inside MainActivity — no manifest entry needed.
+        -->
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:label="@string/title_activity_main"
+            android:theme="@style/Theme.MeetAI" />
+
+        <!-- FileProvider — required for sharing files with email apps -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -39,26 +107,9 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".Transcriptactivity" android:exported="false" />
-        <activity android:name=".SignUpActivity" android:exported="false" />
-        <activity android:name=".LoginActivity" android:exported="false" />
         <activity
-            android:name=".Splashactivity"
-            android:exported="true"
-            android:noHistory="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".MainActivity" android:exported="false" />
-        <activity android:name=".Newmeetingactivity" android:exported="false" />
-        <activity android:name=".Joinmeetingactivity" android:exported="false" />
-        <activity
-            android:name=".Meetingroomactivity"
-            android:exported="false"
-            android:keepScreenOn="true"
-            android:screenOrientation="portrait" />
+            android:name=".Transcriptactivity"
+            android:exported="false" />
 
     </application>
 
